@@ -1,0 +1,20 @@
+Explorer
+- Todos começam assim, ficam explorando o mapa e memorizando os locais até determinado momento.
+- A quantidade de espaços descobertos determina a decisão de parada ou não.
+- Exploram o mapa, priorizando olfato e, caso contrário, lugares não visitados.
+
+Stalker
+- Persegue o rastro dos poupadores, sempre mantendo uma distância de 3 campos.
+- A ideia é manter o "medo" no poupador e atualizar o mapa memorizado constantemente.
+
+Pursuer
+- Persegue o poupador sempre que possível.
+- A ideia é atraí-los para os demais ladrões, cercando-os.
+- Indicam sua posição sempre que detectar um olfato de 3 ou menos.
+- Após indicada a posição, os demais ladrões decidem se vão até lá para gerar uma emboscada ou não.
+
+Exploiter
+- Persegue o poupador, tentando cercá-lo, e caso se aproxime muito, com uma distância de 1 ou 2, ele não faz nada.
+- A ideia é "assustar" o poupador, forçando-o a se mover à outro sentido.
+
+
