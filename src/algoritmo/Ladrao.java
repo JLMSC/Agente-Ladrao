@@ -36,8 +36,49 @@ public class Ladrao extends ProgramaLadrao {
 		// "Memoriza" os terrenos visíveis pelo ladrão.
 		this.memorizeLand(this.sensor.getVisaoIdentificacao(), this.sensor.getPosicao());
 		// TODO: Doc e implementação da lógica de terreno menos explorado.
-		return this.decidePath(this.sensor.getPosicao());
+		int[] search_results = search(knownField, 30, 100); 
+		return ( search_results[0] == 0 ) ? this.decidePath(this.sensor.getPosicao()) : this.chaseSaver(search_results);
 	}
+
+	private int chaseSaver(int[] result) {
+		System.out.println(knownField[result[0]][result[1]] + " at position : " + result[0] + " " + result[1]); 
+		System.out.println(this.sensor.getPosicao());
+
+		if (this.sensor.getPosicao().getX() > result[1]) {
+			return 4;
+		} else if (this.sensor.getPosicao().getX() < result[1]) {
+			return 3;
+		} else if (this.sensor.getPosicao().getY() < result[0]) {
+			return 2;
+		} else if (this.sensor.getPosicao().getY() > result[0]) {
+			return 1;
+		}
+		
+		return 0;
+	}
+
+	private int[] search(int[][] mat, int n, int x) {
+	int[] vector = new int[1];
+	
+    if (n == 0){
+		vector[0] = -1;
+      	return vector;	
+	}
+ 
+    // traverse through the matrix
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++)
+        // if the element is found
+        if (mat[i][j] == x) {
+			int[] position_saver = new int[2];
+			position_saver[0] = i;
+			position_saver[1] = j;
+          return position_saver;
+        }
+    }
+	vector[0] = 0;
+    return vector;
+  }
 
 	/**
 	 * Explora os terrenos adjacentes ao ladrão, baseado na quantidade de vezes que
@@ -224,7 +265,7 @@ public class Ladrao extends ProgramaLadrao {
 		// é garantido que o ladrão NUNCA vai sair de lá, pois ele já conhece a "saída"
 		// mas não vai querer voltar pq CONHECE a "saída", ele vai ficar batendo contra a parede
 		// na tentativa de ir para um caminho que ele NÃO CONHECE.
-		ArrayList<Integer> landTravelProbability = this.gatherLandsKnownPercentage(positionX, positionY);
+		// ArrayList<Integer> landTravelProbability = this.gatherLandsKnownPercentage(positionX, positionY);
 
 		// Explora os terrenos adjacentes e escolhe uma direção.
 		return this.gatherAdjacentLandsInfo(nonVisitablePaths, positionX, positionY);
