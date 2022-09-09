@@ -1,7 +1,5 @@
 package algoritmo;
 
-import java.util.Arrays;
-
 public class Poupador extends ProgramaPoupador {
 
 	@Override
