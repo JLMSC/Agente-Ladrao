@@ -5,374 +5,235 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
- * Representação de um vértice.
+ * Função responsável pelo cálculo da distância ("Manhattan Distance")
+ * entre duas coordenadas: "origem" e "destino".
  */
-class Vertex {
-    // O rótulo do vértice atual.
-    private String label;
-
-    // O vértice anterior ao vértice atual.
-    private Vertex previous;
-
-    /**
-     * Construtor base do vértice.
-     * @param label O rótulo do vértice.
-     */
-    Vertex(String label) {
-        this.label = label;
-    }
-
-    /**
-     * Retorna o rótulo do vértice atual.
-     * @return O rótulo do vértice atual.
-     */
-    public String getLabel() {
-        return this.label;
-    }
-
-    /**
-     * Altera o vértice anterior do vértice atual.
-     * @param previous O novo vértice anterior ao vértice atual.
-     */
-    public void setPrevious(Vertex previous) {
-        this.previous = previous;
-    }
-
-    /**
-     * Retorna o vértice anterior ao vértice atual.
-     * @return O vértice anterior.
-     */
-    public Vertex getPrevious() {
-        return this.previous;
+class HScore {
+    public static int hScore(int[] originCoordinates, int[] destinyCoordinates) {
+        return Math.abs(originCoordinates[0] - destinyCoordinates[0])
+                + Math.abs(originCoordinates[1] - destinyCoordinates[1]);
     }
 }
 
 /**
- * Representação de um grafo.
+ * Representação básica de um nó.
+ */
+class Node {
+    // O rótulo do vértice.
+    public String label;
+    // O vértice parente do vértice atual.
+    public Node root;
+
+    // Construtor base.
+    Node(String label, Node root) {
+        this.label = label;
+        this.root = root;
+    }
+}
+
+/**
+ * Representação básica de um grafo.
  */
 class Graph {
     // Armazena os vértices do grafo.
-    protected Map<Vertex, Map<Vertex, Integer>> vertexes = new HashMap<>();
+    protected Map<String, Map<String, Integer>> vertexes = new HashMap<>();
 
     /**
-     * Adiciona um vértice ao grafo.
+     * Adiciona um vértice ao grafo,
+     * se não existir.
+     * 
      * @param label O rótulo do vértice.
      */
-    public void addVertex(String label) {
-        // Verifica se o grafo possui vértices.
-        if (!(this.vertexes.isEmpty())) {
-            // Se o vértice ja existe no grafo.
-            boolean vertexAreadyExists = this.getVertexByLabel(label) != null ? true : false;
-
-            // Adiciona o vértice ao grafo caso não exista.
-            if (!(vertexAreadyExists)) {
-                this.vertexes.put(new Vertex(label), new HashMap<>());
-            }
-        } else {
-            this.vertexes.put(new Vertex(label), new HashMap<>());
-        }
+    public void addVertexToGraph(String label) {
+        this.vertexes.putIfAbsent(label, new HashMap<>());
     }
 
     /**
      * Adiciona uma aresta entre dois vértices.
-     * @param originLabel O vértice origem.
-     * @param destinyLabel O vértice destino.
-     * @param dir O valor referente à direção do vértice.
+     * 
+     * @param originLabel  O rótulo do vértice origem.
+     * @param destinyLabel O rótulo do vértice destino.
+     * @param direction    A direção do vértice orige
      */
-    public void addEdge(String originLabel, String destinyLabel, Integer dir) {
-        // Pega o vértice alvo no grafo.
-        Vertex originVertex = this.getVertexByLabel(originLabel);
-        // Verifica se o vértice existe.
-        if (originVertex != null) {
-            // Adiciona o vizinho ao vértice.
-            this.vertexes.get(originVertex).put(new Vertex(destinyLabel), dir);
-        }
+    public void addEdgeToGraph(String originLabel, String destinyLabel, int direction) {
+        this.vertexes.get(originLabel).put(destinyLabel, direction);
     }
 
     /**
-     * Pega os vértices vizinhos de um vértice qualquer.
-     * @param label O vértice a ser pego seus vizinhos.
-     * @return Os vértices vizinhos do vértice fornecido,
-     * ou 'null' caso não exista.
+     * Pega os vértices vizinhos de um vértice fornecido
+     * qualquer.
+     * 
+     * @param label O rótulo de um vértice qualquer do grafo.
+     * @return Os vértices vizinhos de um vértice.
      */
-    public Map<Vertex, Integer> getNeighbors(String label) {
-        // Procura pelo vértice no grafo e retorna os vizinhos.
-        return this.vertexes.get(this.getVertexByLabel(label));
+    public Map<String, Integer> getVertexNeighbor(String label) {
+        return this.vertexes.get(label);
     }
 
     /**
-     * Procura pelo vértice alvo, iterando
-     * sobre todos os vértices do grafo.
-     * @param label O rótulo do vértice.
-     * @return O vértice caso exista no grafo,
-     * 'null' caso contrário.
-     */
-    public Vertex getVertexByLabel(String label) {
-        // Procura pelo vértice alvo, iterando
-        // sobre todos os vértices do grafo.
-        Vertex targetVertex = null;
-        for (Vertex vertex : this.vertexes.keySet()) {
-            if (vertex.getLabel().equals(label)) {
-                targetVertex = vertex;
-                break;
-            }
-        }
-        return targetVertex;
-    }
-
-    /**
-     * Remove o separador do rótulo, transforma
-     * para inteiro e retorna-os.
+     * Remove o separador do rótulo, transformando-os
+     * para inteiro e retordando-os.
+     * 
      * @param label O rótulo do vértice.
      * @return Uma lista de inteiros com as coordenadas.
      */
     public int[] labelToCoordinates(String label) {
         // Remove o separador.
         String[] coordinates = label.split(":");
-        // Transforma para uma lista de inteiro e retorna-o.
-        return new int[]{
-            Integer.parseInt(coordinates[0]),
-            Integer.parseInt(coordinates[1])
+        // Transforma para uma lista de inteiro e retorna-os.
+        return new int[] {
+                Integer.parseInt(coordinates[0]),
+                Integer.parseInt(coordinates[1])
         };
     }
 
     /**
-     * Transforma as coordenadas de um vértice,
-     * em seu rótulo.
+     * Transforma as coordenadas de um vértice qualquer
+     * em seu possível rótulo para o grafo.
+     * 
      * @param coordinates As coordenadas do vértice.
      * @return O rótulo do vértice.
      */
     public String coordinatesToLabel(int[] coordinates) {
-        // Transforma para Strings, adiciona o separador e retorna.
+        // Transforma as coordenadas de um vértice qualquer
+        // em um rótulo adptado para o grafo.
         return Integer.toString(coordinates[0]) + ":" + Integer.toString(coordinates[1]);
     }
 
     /**
-     * Pega o valor heurístico associado à um
-     * vértice alvo qualquer.
-     * @param current O vértice alvo.
-     * @param objective O vértice objetivo.
-     * @return O valor heurístico do vértice alvo ao vértice objetivo.
+     * Reconstroi o caminho percorrido pelo A*.
+     * 
+     * @param path         Os vértices visitados.
+     * @param destinyLabel O rótulo do vértice destino.
+     * @return Uma lista contendo o caminho encontrado pelo A*.
      */
-    protected Integer hScore(String current, String objective) {
-        // Pega o vértice alvo no grafo.
-        Vertex currentVertex = this.getVertexByLabel(current);
-        // Pega o vértice objetivo no graof.
-        Vertex objectiveVertex = this.getVertexByLabel(objective);
+    public ArrayList<String> reconstructPath(ArrayList<Node> path, String destinyLabel) {
 
-        // Verifica se o vértice existe no grafo.
-        if (currentVertex != null && objectiveVertex != null) {
-            // As coordenadas do vértice alvo.
-            int[] currentCoordinates = this.labelToCoordinates(current);
-            // As coordenadas do vértice objetivo.
-            int[] objectiveCoordinates = this.labelToCoordinates(objective);
-            // O valor heurístico associado ao vértice alvo. "Manhattan Distance"
-            return (
-                Math.abs(currentCoordinates[0] - objectiveCoordinates[0]) +
-                Math.abs(currentCoordinates[1] - objectiveCoordinates[1])
-            );
-        } else {
-            return null;
+        // Armazena o caminho reconstruido.
+        ArrayList<String> reconstructedPath = new ArrayList<>();
+
+        // Pega o vértice destino.
+        Node destiny;
+        for (Node node : path) {
+            if (node.label.equals(destinyLabel)) {
+                destiny = node;
+
+                // Itera sobre os vértices "raízes".
+                while (destiny != null) {
+                    reconstructedPath.add(destiny.label);
+                    destiny = destiny.root;
+                }
+
+                // Sai do loop.
+                break;
+            }
         }
+
+        // Reverte a ordem do caminho.
+        Collections.reverse(reconstructedPath);
+        // Retorna o caminho reconstruido.
+        return reconstructedPath;
     }
 
     /**
-     * Reconstroi o caminho percorrido pelo A* a partir 
-     * do último vértice visitado, que no caso seria o 
-     * vértice objetivo.
-     * @param current O vértice objetivo, obtido pelo A*.
-     * @param origin O vértice origem do Ladrão.
-     * @return Uma lista contendo os vértices a serem
-     * percorridos para chegar no objetivo a partir da
-     * origem.
-     */
-    public ArrayList<String> reconstructPath(Vertex current, String origin) {
-        // Armazena o caminho.
-        ArrayList<String> path = new ArrayList<>();
-        // Pega todos os vértices antecessores até que não
-        // haja mais nenhum vértice antecessor.
-        while (current != null) {
-            path.add(current.getLabel());
-            // if (current.getLabel().equals(origin)) {
-            //     break;
-            // }
-            current = current.getPrevious();
-        }
-        // Inverte a ordem da lista.
-        Collections.reverse(path);
-        // Retorna a lista invertida.
-        return path;
-    }
-
-    /**
-     * Aplica o algoritmo, de busca de caminho mínima, A*,
-     * com o intento de se obter o menor caminho, saindo de
-     * uma origem e indo até um objetivo.
-     * @param origin O vértice origem, a posição do Ladrão.
-     * @param destiny O vértice objetivo.
-     * @return O caminho caso seja possível chegar até o 
-     * objetivo, ou nulo, caso não tenha solução.
+     * Algoritmo de Busca A*.
+     * 
+     * @param origin  O rótulo do vértice origem.
+     * @param destiny O rótulo do vértice destino.
+     * @return O menor caminho da origem para o destino.
      */
     public ArrayList<String> AStar(String origin, String destiny) {
         // Os vértices descobertos que ainda podem ser expandidos.
-        Map<String, Integer> openSet = new HashMap<String, Integer>(){{
-            // Inclui o vértice origem já na lista.
-            put(origin, 0);
-        }};
+        Map<String, Integer> openSet = new HashMap<String, Integer>() {
+            {
+                // Inclui o vértice origem já na lista.
+                put(origin, 0);
+            }
+        };
 
-        // Os vértices que já foram explorados.
-        ArrayList<String> closedSet = new ArrayList<String>();
+        // Os vértices que já foram expandidos.
+        ArrayList<String> closedSet = new ArrayList<>();
 
-        // O Ladrão já está no destino, ou o Ladrão ao
-        // se aproximar do objetivo, percebeu que o 
-        // objetivo é impossível de visitar.
-        if (origin.equals(destiny) || this.getVertexByLabel(destiny) == null) {
+        // O caminho percorrido.
+        ArrayList<Node> path = new ArrayList<>();
+
+        // Caso o Ladrão já esteja no destino ou seja impossível de visitar.
+        if (origin.equals(destiny) || this.getVertexNeighbor(destiny) == null) {
             return null;
         }
 
+        // Responsável pela escolhe um vértice, de forma aleatória.
+        Random vertexSelector = new Random();
+
         // Itera sobre os vértices descobertos.
         while (!(openSet.isEmpty())) {
-            // Pega o vértice com o menor valor.
-            Vertex current = this.getVertexByLabel(
-                Collections.min(
-                    openSet.entrySet(),
-                    Map.Entry.comparingByValue()
-                ).getKey()
-            );
+            // A menor distância registrada.
+            int minDistance = Collections.min(openSet.entrySet(), Map.Entry.comparingByValue()).getValue();
+            // Cria uma lista somente com os vértices que possuem a menor distância.
+            ArrayList<String> vertexesWithMinDistance = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : openSet.entrySet()) {
+                // O rótulo do vértice.
+                String vertex = entry.getKey();
+                // A distância do vértice.
+                int distance = entry.getValue();
+
+                if (distance == minDistance) {
+                    vertexesWithMinDistance.add(vertex);
+                }
+            }
+
+            // Escolhe um vértice aleatório.
+            String current = vertexesWithMinDistance.get(vertexSelector.nextInt(vertexesWithMinDistance.size()));
 
             // Verifica se chegou no objetivo.
-            if (current.getLabel().equals(destiny)) {
-                return this.reconstructPath(current, origin);
+            if (current.equals(destiny)) {
+                return this.reconstructPath(path, destiny);
             }
 
             // Remove o vértice escolhido do "openSet".
-            openSet.remove(current.getLabel());
+            openSet.remove(current);
+
+            // Adiciona o vértice ao caminho.
+            path.add(new Node(current, null));
+
+            // As coordenadas do vértice atual.
+            int[] currentCoordinates = this.labelToCoordinates(current);
 
             // Expande os vizinhos.
-            for (Vertex neighbor : this.getNeighbors(current.getLabel()).keySet()) {
-                if (!(closedSet.contains(neighbor.getLabel()))) {
-                    if (!(openSet.containsKey(neighbor.getLabel()))) {
-                        // Atualiza o "antecessor", do vértice vizinho
-                        // ao vértice atual, no grafo.
-                        this.getVertexByLabel(neighbor.getLabel()).setPrevious(current);
+            for (String neighbor : this.getVertexNeighbor(current).keySet()) {
+                if (!(closedSet.contains(neighbor))) {
+                    if (!(openSet.containsKey(neighbor))) {
+                        // As coordendas do vizinho.
+                        int[] neighborCoordinates = this.labelToCoordinates(neighbor);
 
-                        // Adiciona o vértice vizinho ao "openSet";
+                        // Altera o vértice "caminho".
+                        for (Node node : path) {
+                            if (node.label == current) {
+                                path.add(new Node(neighbor, node));
+                                break;
+                            }
+                        }
+
+                        // Adiciona o vizinho ao "openSet".
                         openSet.put(
-                            neighbor.getLabel(), 
-                            hScore(neighbor.getLabel(), destiny)
-                        );
+                                neighbor,
+                                HScore.hScore(currentCoordinates, neighborCoordinates));
                     }
                 }
             }
             // Adiciona o vértice atual ao "closedSet".
-            closedSet.add(current.getLabel());
+            closedSet.add(current);
         }
-        // Retorna nulo se não tiver solução.
+        // Sem solução.
         return null;
     }
 }
 
 /**
- * Representação abstrata
- * de um determinado comportamento.
- */
-abstract class Behaviour {
-    // O Ladrão herdeiro de tal comportamento.
-    protected Ladrao thief;
-
-    /**
-     * Adiciona o Ladrão herdeiro de
-     * tal comportamento à classe,
-     * facilitando as interações com
-     * o agente.
-     * @param thief O Ladrão atual.
-     */
-    public Behaviour(Ladrao thief) {
-        this.thief = thief;
-    }
-
-    /**
-     * Realize determinada ação, baseando-se
-     * na definição de determinado comportamento.
-     * @return A direção a ser seguida pelo Ladrão.
-     */
-    public abstract int act();
-}
-
-/**
- * Representa um comportamento
- * de um "Explorador".
- */
-class Intel extends Behaviour {
-    /**
-     * Construtor base da classe.
-     */
-    Intel(Ladrao thief) {
-        super(thief);
-    }
-
-    @Override
-    public int act() {
-        // Verifica se o Ladrão está no objetivo ou
-        // se o Ladrão não tem um objetivo definido.
-        if (this.thief.objective == null || this.thief.isThiefOnObjective()) {     
-            // Pega as coordenadas do terreno mais distante, 
-            // em relação a posição atual do Ladrão e define
-            // como novo objetivo.
-            this.thief.objective = this.thief.getLongestUnknownVertex();
-        }
-
-        // Gera o menor caminho possível para chegar ao objetivo a partir
-        // da posição atual do Ladrão.
-        int[] currentThiefPosition = this.thief.getThiefCurrentPosition();
-        ArrayList<String> pathToObjective = this.thief.graph.AStar(
-            this.thief.graph.coordinatesToLabel(
-                new int[]{currentThiefPosition[1], currentThiefPosition[0]}
-            ), 
-            this.thief.objective
-        );
-
-        // Caso não exista uma solução para o objetivo 
-        // definido pelo Ladrão, um novo objetivo é
-        // escolhido.
-        if (pathToObjective == null || pathToObjective.size() < 2) {
-            this.thief.objective = this.thief.getLongestUnknownVertex();
-        } else {
-            // O vértice onde o Ladrão está.
-            Vertex origin = this.thief.graph.getVertexByLabel(pathToObjective.get(0));
-            // O rótulo do vértice para onde o Ladrão tem que ir.
-            String destiny = pathToObjective.get(1);
-
-            // Retorna a direção que o Ladrão tem 
-            // que seguir para chegar ao objetivo.
-            for (Map.Entry<Vertex, Integer> neighbor : this.thief.graph.vertexes.get(origin).entrySet()) {
-                // O rótulo do vértice vizinho.
-                String neighborLabel = neighbor.getKey().getLabel();
-                // A direção do vértice vizinho.
-                Integer neighborDir = neighbor.getValue();
-
-                // Verifica se o rótulo vizinho é o
-                // caminho a ser seguido.
-                if (neighborLabel.equals(destiny)) {
-                    // Retorna a direção.
-                    return neighborDir;
-                }
-            }
-            // Faz nada.
-            return 0;
-        }
-
-        // Faz nada.
-        return 0;
-    }
-}
-
-/**
- * Representação de um agente inteligente,
- * do jogo "LadrãoXPoupador", ou seja, o
- * Ladrão.
+ * Representação de um agente inteligente, o Ladrão.
  */
 public class Ladrao extends ProgramaLadrao {
     // A memória do Ladrão, referente ao Labirinto.
@@ -381,32 +242,31 @@ public class Ladrao extends ProgramaLadrao {
     // O grafo relacionado à memória do Ladrão.
     protected Graph graph;
 
-    // O objetivo do Ladrão, onde ele quer chegar.
-    protected String objective;
-    
-    // O comportamento do Ladrão, por padrão
-    // todos os agentes começam como exploradores
-    // e ao longo do tempo, eles decidirão se 
-    // mudarão de comportamento ou não.
-    protected Behaviour behaviour = new Intel(this);
+    // O local em que o Ladrão pretende chegar durante sua exploração.
+    private String explorationObjectiveLocation;
+
+    // Define um "temporizador" de roubo para os Poupadores.
+    private Map<Integer, Integer> targetRefreshRate;
+
+    // Define a quantia prévia relacionada as moedas do Ladrão.
+    private int previousMoneyOnHold;
 
     // Os terrenos impossíveis de visitar.
     protected ArrayList<Integer> nonVisitableLands = new ArrayList<>(
-       Arrays.asList(
-            -1,  // Sem visão para o terreno.
-            1,   // Parede.
-            3,   // Banco.
-            4,   // Moeda.
-            5,   // Pastilha do Poder.
-            200, // O Ladrão 1.
-            210, // O Ladrão 2.
-            220, // O Ladrão 3.
-            230  // O Ladrão 4.
-        )
-    );
+            Arrays.asList(
+                    -1, // Sem visão para o terreno.
+                    1, // Parede.
+                    3, // Banco.
+                    4, // Moeda.
+                    5, // Pastilha do Poder.
+                    200, // O Ladrão 1.
+                    210, // O Ladrão 2.
+                    220, // O Ladrão 3.
+                    230 // O Ladrão 4.
+            ));
 
     /**
-     * Inicializa a variável de memória, 
+     * Inicializa a variável de memória,
      * referente ao Labirinto.
      */
     private void initUnknownTerritoryVar() {
@@ -422,180 +282,399 @@ public class Ladrao extends ProgramaLadrao {
      */
     Ladrao() {
         this.initUnknownTerritoryVar();
-    }
-
-    /**
-     * Faz com que o Ladrão verifica se determinado
-     * terreno, a partir de sua memória/visão, é 
-     * visitável ou não.
-     * @param landContent O conteúdo de um terreno.
-     * @return Indica se o terreno é visitável.
-     */
-    protected boolean isLandInvalid(int landContent) {
-        return nonVisitableLands.contains(landContent);
-    }
-
-    /**
-     * Calcula a distância entre todos os vértices
-     * desconhecidos do grafo com o vértice origem.
-     * @return O vértice desconhecido mais distante
-     * em relação a posição do Ladrão.
-     */
-    protected String getLongestUnknownVertex() {
-        // Armazena os vértices do grafo e as distâncias.
-        Map<String, Integer> unknownVerticesDistances = new HashMap<>();
-
-        // A posição atual do Ladrão.
-        int[] currentThiefPosition = this.getThiefCurrentPosition();
-        // O rótulo de um vértice com a posição atual do Ladrão.
-        String root = this.graph.coordinatesToLabel(
-            new int[]{currentThiefPosition[1], currentThiefPosition[0]}
-        );
-
-        // Itera sobre todos os vértices do grafo.
-        for (Vertex vertex : this.graph.vertexes.keySet()) {
-            // Pega o conteúdo do vértice.
-            int[] vertexCoordinates = this.graph.labelToCoordinates(vertex.getLabel());
-            Integer landContent = this.knownField[vertexCoordinates[0]][vertexCoordinates[1]];
-            // Verifica se o terreno é desconhecido.
-            if (landContent.equals(-2)) {
-                // Adiciona o vértice e a distância ao dicionário.
-                unknownVerticesDistances.put(
-                    vertex.getLabel(),
-                    this.graph.hScore(root, vertex.getLabel())
-                );
+        this.targetRefreshRate = new HashMap<Integer, Integer>() {
+            {
+                put(100, 0); // O Poupador 0.
+                put(110, 0); // O Poupador 1.
             }
-        }
-        // Retorna o rótulo do vértice mais distante.
-        return Collections.max(
-            unknownVerticesDistances.entrySet(),
-            Map.Entry.comparingByValue()
-        ).getKey();
+        };
+        this.previousMoneyOnHold = this.getThiefMoneyOnHold();
     }
 
     /**
-     * Verifica se o Ladrão está no objetivo,
-     * verificando se a sua posição é igual
-     * a do objetivo.
-     * @return Se o Ladrão está no objetivo.
+     * Pega os terrenos adjacentes a um terreno fornecido qualquer,
+     * ajustando-os para à visão.
+     * 
+     * @param x A coordenada "x" do terreno.
+     * @param y A coordenada "y" do terreno.
+     * @return Os terrenos adjacentes que são possíveis de visitar.
      */
-    protected boolean isThiefOnObjective() {
-        // A posição atual do Ladrão como rótulo de um vértice.
-        String thiefCurrentPosition = this.graph.coordinatesToLabel(
-            this.getThiefCurrentPosition()
-        );
-        // Se o Ladrão está no objetivo.
-        return thiefCurrentPosition.equals(this.objective);
-    }
-
-    /**
-     * Retorna uma lista de inteiros, contendo
-     * o 'x' e o 'y' do Ladrão.
-     * @return Uma lista de inteiros, refente à
-     * posição do Ladrão.
-     */
-    protected int[] getThiefCurrentPosition() {
-        // Pega a posição atual do Ladrão.
-        java.awt.Point currentPosition = this.sensor.getPosicao();
-        // Converte ambos os valores ('x' e 'y') para inteiro.
-        Integer x = (int) currentPosition.getX();
-        Integer y = (int) currentPosition.getY();
-        // Retorna uma lista de inteiros, contendo ambas as coordenadas.
-        return new int[]{x, y};
-    }
-
-    /**
-     * Pega os terrenos adjacentes, contendo, também,
-     * seus valores de direção, de um terreno fornecido 
-     * qualquer.
-     * @param x A coordenada 'x' do terreno fornecido.
-     * @param y A coordenada 'y' do terreno fornecido.
-     * @return Um dicionário, contendo os terrenos adjacentes
-     * que são visitáveis e seus valores de direção.
-     */
-    private Map<String, Integer> getAdjacentLands(int x, int y) {
+    private Map<String, Integer> getAdjacentLandsToVision(int x, int y) {
         // Os valores que, se somados a posição do terreno
         // fornecido, isto é, o 'x' e o 'y', retornarão os
         // terrenos adjacentes.
-        int[] adjacentLandsIndex = new int[]{0, -1, 0, 1, 1, 0, -1, 0};
+        int[] adjacentLandsIndex = new int[] { 0, -1, 0, 1, 1, 0, -1, 0 };
 
-        // Armazenará os terrenos adjacentes.
+        // Armazena os terrenos adjacentes.
         Map<String, Integer> adjacentLands = new HashMap<>();
 
-        // A direção referente ao valores somados às coordenadas
-        // fornecidas, a ordem seguida é : 4, 3, 2, 1.
-        Integer landTravelDirection = 4;
+        // A direção referente ao terreno adjacente.
+        // Ordem padrão: 1, 2, 3, 4. (os terrenos adjacentes são percorridos nessa
+        // ordem.)
+        int landTravelDirection = 1;
 
-        // Itera sobre pares de índices dos terrenos adjacentes.
-        for (int adjI = 0; adjI < adjacentLandsIndex.length; adjI += 2) {
-            // As coordenadas do terreno adjacente ao terreno atual.
-            Integer adjacentLandX = adjacentLandsIndex[adjI] + x;
-            Integer adjacentLandY = adjacentLandsIndex[adjI + 1] + y;
-            
-            // Valida se as coordenadas do terreno adjacente estão dentro do
-            // labirinto.
+        // Itera sobre os pares de índices ('x' e 'y') dos terrenos adjacentes.
+        for (int i = 0; i < adjacentLandsIndex.length; i += 2) {
+            // As coordenadas do terreno adjacentes.
+            int adjacentLandX = adjacentLandsIndex[i] + x;
+            int adjacentLandY = adjacentLandsIndex[i + 1] + y;
+
+            // Valida se as coordenadas estão dentro do labirinto.
             if (0 <= adjacentLandX && adjacentLandX <= 29) {
                 if (0 <= adjacentLandY && adjacentLandY <= 29) {
-                    // Pega o conteúdo do terreno adjacente.
-                    Integer adjacentLandContent = this.knownField[adjacentLandX][adjacentLandY];
                     // Verifica se o terreno é visitável.
-                    if (!(this.isLandInvalid(adjacentLandContent))) {
-                        // Adiciona aos terrenos adjacentes.
+                    if (!this.isLandInvalid(adjacentLandX, adjacentLandY)) {
+                        // Adiciona o terreno atual e sua direção aos terrenos vizinhos.
                         adjacentLands.put(
-                            this.graph.coordinatesToLabel(
-                                new int[]{adjacentLandX, adjacentLandY}
-                            ), landTravelDirection
-                        );
+                                this.graph.coordinatesToLabel(new int[] { adjacentLandX, adjacentLandY }),
+                                landTravelDirection);
                     }
                 }
             }
-            // Altera o valor de direção do terreno.
-            landTravelDirection--;
+            // Altera a direção correspondente ao terreno adjacentes.
+            landTravelDirection++;
         }
+
         // Retorna os terrenos adjacentes.
         return adjacentLands;
     }
 
     /**
-     * Atualiza o grafo, referente à memória do Ladrão
-     * sobre o Labirinto, sempre que a memória do Ladrão
-     * for alterada.
+     * Pega os terrenos adjacentes a um terreno fornecido qualquer,
+     * ajustando-os para à memória.
+     * 
+     * @param x A coordenada "x" do terreno.
+     * @param y A coordenada "y" do terreno.
+     * @return Os terrenos adjacentes que são possíveis de visitar.
      */
-    private void updateGraphBasedOnMemory() {
-        // Reseta o grafo do Ladrão.
-        this.graph = new Graph();
+    private Map<String, Integer> getAdjacentLandsToMemory(int x, int y) {
+        // Os valores que, se somados a posição do terreno
+        // fornecido, isto é, o 'x' e o 'y', retornarão os
+        // terrenos adjacentes.
+        int[] adjacentLandsIndex = new int[] { 0, -1, 0, 1, 1, 0, -1, 0 };
 
-        // Percorre todos os terrenos do labirinto,
-        // a partir da memória do Ladrão.
-        for (int i = 0; i < this.knownField.length; i++) {
-            for (int j = 0; j < this.knownField[i].length; j++) {
-                // Pega o conteúdo do terreno, ou seja,
-                // o que o Ladrão se lembra.
-                Integer landContent = this.knownField[i][j];
+        // Armazena os terrenos adjacentes.
+        Map<String, Integer> adjacentLands = new HashMap<>();
 
-                // Ignora os terrenos impossíves de visitar.
-                if (!this.isLandInvalid(landContent)) {
-                    // Cria um vértice, do terreno atual, para o grafo,
-                    // caso ainda não exista no grafo.
-                    String currentLand = this.graph.coordinatesToLabel(new int[]{i, j});
-                    this.graph.addVertex(currentLand);
+        // A direção referente ao terreno adjacente.
+        // Ordem padrão: 4, 3, 2, 1 (os terrenos adjacentes são percorridos nessa
+        // ordem.)
+        int landTravelDirection = 4;
 
-                    // Pega os terrenos adjacentes ao terreno atual.
-                    for (Map.Entry<String, Integer> entry : this.getAdjacentLands(i, j).entrySet()) {
-                        // O ŕotulo do terreno adjacente.
-                        String adjVertex = entry.getKey();
-                        // O valor de direção do terreno adjacente.
-                        Integer adjVertexDirection = entry.getValue();
+        // Itera sobre os pares de índices ('x' e 'y') dos terrenos adjacentes.
+        for (int i = 0; i < adjacentLandsIndex.length; i += 2) {
+            // As coordenadas do terreno adjacentes.
+            int adjacentLandX = adjacentLandsIndex[i] + x;
+            int adjacentLandY = adjacentLandsIndex[i + 1] + y;
 
-                        // Adicion o vértice ao grafo, caso ainda não exista
-                        // no grafo.
-                        this.graph.addVertex(adjVertex);
-
-                        // Adiciona uma aresta entre o terreno atual
-                        // e o terreno adjacente.
-                        this.graph.addEdge(currentLand, adjVertex, adjVertexDirection);
+            // Valida se as coordenadas estão dentro do labirinto.
+            if (0 <= adjacentLandX && adjacentLandX <= 29) {
+                if (0 <= adjacentLandY && adjacentLandY <= 29) {
+                    // Verifica se o terreno é visitável.
+                    if (!this.isLandInvalid(adjacentLandX, adjacentLandY)) {
+                        // Adiciona o terreno atual e sua direção aos terrenos vizinhos.
+                        adjacentLands.put(
+                                this.graph.coordinatesToLabel(new int[] { adjacentLandX, adjacentLandY }),
+                                landTravelDirection);
                     }
                 }
+            }
+            // Altera a direção correspondente ao terreno adjacentes.
+            landTravelDirection--;
+        }
+
+        // Retorna os terrenos adjacentes.
+        return adjacentLands;
+    }
+
+    /**
+     * Cria um grafo, baseando-se na memória do Ladrão.
+     */
+    private void updateGraphBasedOnMemory() {
+        // Cria um novo grafo vazio.
+        this.graph = new Graph();
+
+        // Percorre os terrenos da memória do Ladrão.
+        for (int y = 0; y <= this.knownField.length - 1; y++) {
+            for (int x = 0; x <= this.knownField[y].length - 1; x++) {
+                // Verifica se o terreno atual é visitável.
+                if (!this.isLandInvalid(y, x)) {
+                    // Adiciona um novo vértice ao grafo.
+                    String currentLand = this.graph.coordinatesToLabel(new int[] { y, x });
+                    this.graph.addVertexToGraph(currentLand);
+
+                    // Pega os terrenos adjacentes ao terreno atual.
+
+                    for (Map.Entry<String, Integer> entry : this.getAdjacentLandsToMemory(y, x).entrySet()) {
+                        // O rótulo do terreno adjacente.
+                        String adjVertex = entry.getKey();
+                        // O valor de direção do terreno adjacente.
+                        int adjVertexDirection = entry.getValue();
+
+                        // Adiciona o vértice visinho ao grafo.
+                        this.graph.addVertexToGraph(adjVertex);
+
+                        // Adiciona uma aresta entre o terreno atual e o vizinho.
+                        this.graph.addEdgeToGraph(currentLand, adjVertex, adjVertexDirection);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Cria um grafo, baseando-se na visão do Ladrão.
+     */
+    private void updateGraphBasedOnVision() {
+        // Cria um novo grafo vazio.
+        this.graph = new Graph();
+
+        // Percorre todos os terrenos relacionados à visão do Ladrão.
+        // Pega a posição ('x' e 'y') do Ladrão.
+        int[] positions = this.getThiefCurrentPosition();
+        int thiefX = positions[0];
+        int thiefY = positions[1];
+
+        // Percorre os terrenos da visão do Ladrão.
+        for (int y = thiefY - 2; y <= thiefY + 2; y++) {
+            for (int x = thiefX - 2; x <= thiefX + 2; x++) {
+                // Verifica se o terreno alvo está dentro do Labirinto.
+                if (0 <= x && x <= 29) {
+                    if (0 <= y && y <= 29) {
+                        // Verifica se o terreno atual é visitável.
+                        if (!this.isLandInvalid(y, x)) {
+                            // Adiciona um novo vértice ao grafo.
+                            String currentLand = this.graph.coordinatesToLabel(new int[] { x, y });
+                            this.graph.addVertexToGraph(currentLand);
+
+                            // Pega os terrenos adjacentes ao terreno atual.
+                            for (Map.Entry<String, Integer> entry : this.getAdjacentLandsToVision(x, y).entrySet()) {
+                                // O rótulo do terreno adjacente.
+                                String adjVertex = entry.getKey();
+                                // O valor de direção do terreno adjacente.
+                                int adjVertexDirection = entry.getValue();
+
+                                // Adiciona o vértice visinho ao grafo.
+                                this.graph.addVertexToGraph(adjVertex);
+
+                                // Adiciona uma aresta entre o terreno atual e o vizinho.
+                                this.graph.addEdgeToGraph(currentLand, adjVertex, adjVertexDirection);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Verifica se um Poupador passou
+     * por perto, baseando-se no seu
+     * cheiro.
+     * 
+     * @return Um valor lógico referente à
+     *         passagem recente de um Poupador.
+     */
+    protected boolean isTargetStinking() {
+        // Se o "cheiro" for diferente de 0, significa que
+        // um Poupador passou por lá.
+        return Arrays.stream(this.getSaverSmell()).anyMatch(i -> i != 0);
+    }
+
+    /**
+     * Verifica se há um Poupador na visão
+     * do Ladrão.
+     * 
+     * @return Um valor lógico referente à
+     *         existência de um poupador na visão
+     *         do Ladrão.
+     */
+    protected boolean isTargetOnSight() {
+        // Retorna verdadeiro se houver pelo menos "100" ou "110",
+        // na visão atual do Ladrão.
+        return Arrays.stream(this.getThiefCurrentVision()).anyMatch(i -> i == 100 || i == 110);
+    }
+
+    /**
+     * Pega a localização, o "x" e "y" do Poupador
+     * que está dentro da visão do Ladrão.
+     * 
+     * @return As coordenadas, "x" e "y" do Ladrão.
+     */
+    protected int pinpointTargetLocation() {
+        // Pega a posição ('x' e 'y') do Ladrão.
+        int[] positions = this.getThiefCurrentPosition();
+        int thiefX = positions[0];
+        int thiefY = positions[1];
+        
+        // Pega a posição do Poupador se o Ladrão consegue vê-lo.
+        if (this.isTargetOnSight()) {
+            // Percorre os terrenos da visão do Ladrão.
+            for (int y = thiefY - 2; y <= thiefY + 2; y++) {
+                for (int x = thiefX - 2; x <= thiefX + 2; x++) {
+                    // Verifica se o terreno alvo está dentro do Labirinto.
+                    if (0 <= x && x <= 29) {
+                        if (0 <= y && y <= 29) {
+                            // Verifica se há algum Poupador nos terrenos da visão
+                            // do Ladrão que não foi roubado recentemente.
+                            if (this.knownField[y][x] == 100 && this.targetRefreshRate.get(100) == 0) {
+                                // Retorna a posição do Poupador.
+                                return this.pursueTarget(new int[] { x, y });
+                            } else if (this.knownField[y][x] == 110 && this.targetRefreshRate.get(110) == 0) {
+                                // Retorna a posição do Poupador.
+                                return this.pursueTarget(new int[] { x, y });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Pega a posição do Poupador se o Ladrão consegue sentir seu cheiro.
+        else if (this.isTargetStinking()) {
+            // O olfato do Ladrão.
+            int[] saverSmell = this.getSaverSmell();
+            // O índice do olfato do Ladrão.
+            int saverSmellIndex = 0;
+            // O menor olfato encontrado.
+            int minSaverSmell = Integer.MAX_VALUE;
+            // A posição do menor olfato encontrado.
+            int[] minSmellPosition = null;
+
+            // Itera sobre as linhas e colunas do olfato do Ladrão.
+            for (int y = thiefY - 1; y <= thiefY + 1; y++) {
+                for (int x = thiefX - 1; x <= thiefX + 1; x++) {
+                    // Ignora a posição atual do Ladrão.
+                    if (!(x == thiefX && y == thiefY)) {
+                        // Verifica se o terreno alvo está dentro do Labirinto.
+                        if (0 <= x && x <= 29) {
+                            if (0 <= y && y <= 29) {
+                                // Verifica se o cheiro encontrado é menor, ignorando os valores menores que
+                                // "0".
+                                if (saverSmell[saverSmellIndex] <= minSaverSmell
+                                        && !(saverSmell[saverSmellIndex] <= 0)) {
+                                    // Atualiza o menor cheiro encontrado.
+                                    minSaverSmell = saverSmell[saverSmellIndex];
+                                    // Atualiza a posição do menor cheiro encontrado.
+                                    minSmellPosition = new int[] { x, y };
+                                }
+                            }
+                        }
+                        // Aumenta o índice do terreno correspondente ao cheiro.
+                        saverSmellIndex++;
+                    }
+                }
+            }
+
+            // Retorna a posição do menor cheiro encontrado ou vai explorar o labirinto.
+            return minSmellPosition != null ? this.pursueTarget(minSmellPosition) : this.exploreLabyrinth();
+        }
+        // O Ladrão vai explorar.
+        return this.exploreLabyrinth();
+    }
+
+    /**
+     * Verifica se determinada posição possui
+     * um terreno possível de visitar.
+     * 
+     * @param x As coordenadas "x" do terreno.
+     * @param y As coordenadas "y" do terreno.
+     * @return Um valor lógico referente à
+     *         disponibilidade do terreno.
+     */
+    protected boolean isLandInvalid(int x, int y) {
+        return nonVisitableLands.contains(this.knownField[x][y]);
+    }
+
+    /**
+     * Verifica se determinada posição possui
+     * um terreno desconhecido.
+     * 
+     * @param x As coordenadas "x" do terreno.
+     * @param y As coordenadas "y" do terreno.
+     * @return Um valor lógico referente à desinformação do terreno.
+     */
+    protected boolean isLandUnknown(int x, int y) {
+        return this.knownField[x][y] == -2;
+    }
+
+    /**
+     * Verifica se determinada posição possui
+     * um terreno conhecido.
+     * 
+     * @param x As coordenadas "x" do terreno.
+     * @param y As coordenadsa "y" do terreno.
+     * @return Um valor lógico referente à disponibilidade do terreno.
+     */
+    protected boolean isLandKnown(int x, int y) {
+        return this.knownField[x][y] == 0;
+    }
+
+    /**
+     * Verifica se o Ladrão já está no objetivo.
+     * 
+     * @return Um valor lógico referente à equalidade da posição do Ladrão com o
+     *         objetivo.
+     */
+    protected boolean isThiefOnObjective() {
+        return this.graph.coordinatesToLabel(this.getThiefCurrentPosition()).equals(this.explorationObjectiveLocation);
+    }
+
+    /**
+     * Retorna uma lista de inteiros,
+     * contendo a visão do Ladrão.
+     * 
+     * @return Uma lista de inteiros, referente à
+     *         visão do Ladrão.
+     */
+    protected int[] getThiefCurrentVision() {
+        return this.sensor.getVisaoIdentificacao();
+    }
+
+    /**
+     * Retorna a quantidade de moedas do Ladrão.
+     * 
+     * @return Uma lista de inteiros, referente à
+     *         quantia de moedas.
+     */
+    protected int getThiefMoneyOnHold() {
+        return this.sensor.getNumeroDeMoedas();
+    }
+
+    /**
+     * Retorna uma lista, indicando o cheiro
+     * do Poupador, isto é, por onde o Poupador
+     * passou.
+     * 
+     * @return Uma lista contendo o cheiro do Poupador.
+     */
+    protected int[] getSaverSmell() {
+        return this.sensor.getAmbienteOlfatoPoupador();
+    }
+
+    /**
+     * Retorna uma lista de inteiros, contendo
+     * o 'x' e o 'y' do Ladrão.
+     * 
+     * @return Uma lista de inteiros, refente à
+     *         posição do Ladrão.
+     */
+    protected int[] getThiefCurrentPosition() {
+        // Pega a posição atual do Ladrão.
+        java.awt.Point currentPosition = this.sensor.getPosicao();
+        // Converte ambos os valores ('x' e 'y') para inteiro.
+        int x = (int) currentPosition.getX();
+        int y = (int) currentPosition.getY();
+        // Retorna uma lista de inteiros, contendo ambas as coordenadas.
+        return new int[] { x, y };
+    }
+
+    /**
+     * Atualiza o "refresh rate" dos Poupadores alvos.
+     */
+    private void updateTargetRefreshRate() {
+        for (Integer saverId : this.targetRefreshRate.keySet()) {
+            if (this.targetRefreshRate.get(saverId) > 0) {
+                this.targetRefreshRate.put(saverId, this.targetRefreshRate.get(saverId) - 1);
             }
         }
     }
@@ -606,16 +685,16 @@ public class Ladrao extends ProgramaLadrao {
      * visão.
      */
     private void memorizeVisitedLands() {
-        // Pega a posição ('x' e 'y') do Ladrão. 
+        // Pega a posição ('x' e 'y') do Ladrão.
         int[] positions = this.getThiefCurrentPosition();
-        Integer thiefX = positions[0];
-        Integer thiefY = positions[1];
+        int thiefX = positions[0];
+        int thiefY = positions[1];
 
         // A visão atual do Ladrão.
-        int[] currentView = this.sensor.getVisaoIdentificacao();
+        int[] currentView = this.getThiefCurrentVision();
 
         // O índice dos terrenos na matriz de visão do Ladrão.
-        Integer gridViewIndex = 0;
+        int gridViewIndex = 0;
 
         // Itera sobre as linhas e colunas da visão do Ladrão.
         for (int y = thiefY - 2; y <= thiefY + 2; y++) {
@@ -633,8 +712,8 @@ public class Ladrao extends ProgramaLadrao {
                             // bloqueada como "desconhecida". Mas se ele
                             // já passou por lá, não faz sentido fazer ele
                             // "esquecer" de tal informação.
-                            if ((currentView[gridViewIndex] != -2 && this.knownField[y][x] == -2) || 
-                                (currentView[gridViewIndex] != -2 && this.knownField[y][x] != -2)) {
+                            if ((currentView[gridViewIndex] != -2 && this.knownField[y][x] == -2) ||
+                                    (currentView[gridViewIndex] != -2 && this.knownField[y][x] != -2)) {
                                 this.knownField[y][x] = currentView[gridViewIndex];
                             }
                         }
@@ -651,10 +730,203 @@ public class Ladrao extends ProgramaLadrao {
         }
     }
 
+    /**
+     * Caso o Ladrão, veja ou sinta o cheiro de um Poupador,
+     * ele persegue-o, até conseguir roubá-lo ou perder-lo.
+     * 
+     * @param targetLocation A posição ("x" e "y") do Poupador alvo.
+     * @return O caminho a ser percorrido.
+     */
+    private int pursueTarget(int[] targetLocation) {
+        // Cria um novo grafo baseado na visão do Ladrão.
+        this.updateGraphBasedOnVision();
+        // Verifica se o Ladrão roubou um Poupador.
+        if (this.previousMoneyOnHold != this.getThiefMoneyOnHold()) {
+            // O máximo de "refresh rate" que o Ladrão aceita.
+            int maxRefreshRate = (int) Math.random() * (150 - 100) + 100;
+            // O tanto de moedas que o Ladrão roubou do Poupador.
+            int stoleCoins = this.getThiefMoneyOnHold() * 10;
+            // Atualiza o "refresh rate" do Poupador roubado.
+            if (stoleCoins == 0) {
+                stoleCoins = (int) Math.random() * (10 - 30) + 10;
+            }
+
+            this.targetRefreshRate.put(this.knownField[targetLocation[1]][targetLocation[0]],
+                    stoleCoins > maxRefreshRate ? maxRefreshRate : stoleCoins);
+            // Altera o valor de "previousMoneyOnHold".
+            this.previousMoneyOnHold = this.getThiefMoneyOnHold();
+        }
+        // Pega o menor caminho até o objetivo definido,
+        // que no caso é a posição do Poupador, e percorre-o.
+        return this.followAStarTrack(this.graph.coordinatesToLabel(this.getThiefCurrentPosition()),
+                this.graph.coordinatesToLabel(targetLocation));
+    }
+
+    /**
+     * Pega o terreno conhecido, a partir da memória
+     * do Ladrão, mais distante em relação ao Ladrão.
+     * 
+     * @return O rótulo do vértice que representa o terreno conhecido mais
+     *         distante.
+     */
+    protected String getLongestKnownVertex() {
+        // Armazena os vértices conhecidos do grafo e as distâncias.
+        Map<String, Integer> knownVerticesDistances = new HashMap<>();
+
+        // Responsável pela seleção de um terreno qualquer para visitar.
+        Random landSelector = new Random();
+
+        // A posição atual do Ladrão.
+        int[] currentThiefPosition = this.getThiefCurrentPosition();
+        currentThiefPosition = new int[] { currentThiefPosition[1], currentThiefPosition[0] };
+
+        // Itera sobre todos os vértices do grafo que representam
+        // terrenhos conhecidos.
+        for (String vertex : this.graph.vertexes.keySet()) {
+            // Pega as coordenadas do vértice.
+            int[] vertexCoordinates = this.graph.labelToCoordinates(vertex);
+            // Verifica se o terreno é conhecido.
+            if (this.isLandKnown(vertexCoordinates[0], vertexCoordinates[1])) {
+                // Adiciona o vértice e a distância ao dicionário.
+                knownVerticesDistances.put(vertex,
+                        HScore.hScore(currentThiefPosition, vertexCoordinates));
+            }
+        }
+
+        // Os vértices que ele conhece.
+        ArrayList<String> vertexes = new ArrayList<>(knownVerticesDistances.keySet());
+        if (!vertexes.isEmpty()) {    
+            // Retorna qualquer vértice que ele conhece.
+            return vertexes.get(landSelector.nextInt(vertexes.size()));
+        }
+        // Retorna o vértice conhecido mais distante, em relação ao Ladrão.
+        else if (!knownVerticesDistances.isEmpty()) {    
+            return Collections.max(knownVerticesDistances.entrySet(), Map.Entry.comparingByValue()).getKey();
+        } 
+        // Vai para o banco.
+        else {
+            return "8:8";
+        }        
+    }
+
+    /**
+     * Pega o terreno desconhecido, a partir da memória
+     * do Ladrão, mais distante em relação ao Ladrão.
+     * 
+     * @return O rótulo do vértice que representa o terreno desconhecido mais
+     *         distante.
+     */
+    protected String getLongestUnknownVertex() {
+        // Armazena os vértices desconhecidos do grafo e as distâncias.
+        Map<String, Integer> unknownVerticesDistances = new HashMap<>();
+
+        // Responsável pela seleção de um terreno qualquer para visitar.
+        Random landSelector = new Random();
+
+        // A posição atual do Ladrão.
+        int[] currentThiefPosition = this.getThiefCurrentPosition();
+
+        // Itera sobre todos os vértices do grafo que representam
+        // terrenhos desconhecidos.
+        for (String vertex : this.graph.vertexes.keySet()) {
+            // Pega as coordenadas do vértice.
+            int[] vertexCoordinates = this.graph.labelToCoordinates(vertex);
+            // Verifica se o terreno é desconhecido.
+            if (this.isLandUnknown(vertexCoordinates[0], vertexCoordinates[1])) {
+                // Adiciona o vértice e a distância ao dicionário.
+                unknownVerticesDistances.put(
+                        vertex,
+                        HScore.hScore(currentThiefPosition, vertexCoordinates));
+            }
+        }
+        // Retorna o rótulo do vértice mais distante
+        // caso ainda exista rótulos desconhecidos.
+        if (!unknownVerticesDistances.isEmpty()) {
+            // A maior distância possível.
+            int maxDistance = (int) Math
+                    .floor(Collections.max(unknownVerticesDistances.entrySet(), Map.Entry.comparingByValue())
+                            .getValue() / 2);
+            // Cria uma lista somente com os vértices que possuem a maior distância.
+            ArrayList<String> unknownVerticesMaxDistance = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : unknownVerticesDistances.entrySet()) {
+                // O rótulo do vértice.
+                String vertex = entry.getKey();
+                // A distância do vértice.
+                int distance = entry.getValue();
+
+                if (distance >= maxDistance) {
+                    unknownVerticesMaxDistance.add(vertex);
+                }
+            }
+
+            // Pega um terreno desconhecido, dentre os mais distantes,
+            // de forma aleatória, caso exista.
+            if (unknownVerticesMaxDistance.size() > 1) {
+                return unknownVerticesMaxDistance.get(landSelector.nextInt(unknownVerticesMaxDistance.size()));
+            }
+        }
+        // Retorna o rótulo do vértice mais distante,
+        // sendo ele um terreno conhecido qualquer.
+        return this.getLongestKnownVertex();
+    }
+
+    /**
+     * Caso o Ladrão não veja nem sinta o cheiro de um Poupador, o mesmo vai
+     * explorar o Labirinto, caso ainda não tenha definido um caminho de
+     * exploração.
+     * 
+     * @return O caminho a ser percorrido.
+     */
+    private int exploreLabyrinth() {
+        // Cria um novo grafo baseado na memória do Ladrão.
+        this.updateGraphBasedOnMemory();
+        // Verifica se o Ladrão já definiu um local como objetivo ou
+        // se o Ladrão já está no objetivo.
+        if (this.explorationObjectiveLocation == null || this.isThiefOnObjective()) {
+            // Pega o ponto mais distante, no labirinto, que ainda não foi visitado pelo
+            // Ladrão.
+            this.explorationObjectiveLocation = this.getLongestUnknownVertex();
+        }
+        // Pega o menor caminho até o objetivo definido, que no caso é o terreno
+        // desconhecido mais distante em relação ao Ladrão.
+        int[] thiefPosition = this.getThiefCurrentPosition();
+        return this.followAStarTrack(
+                this.graph.coordinatesToLabel(new int[] { thiefPosition[1], thiefPosition[0] }),
+                this.explorationObjectiveLocation);
+    }
+
+    /**
+     * Gera um caminho, utilizando o algoritmo A*,
+     * dada um origem e um destino quaisquer, verificando,
+     * também, se o mesmo retornou um caminho válido.
+     * 
+     * @param origin  As coordenadas ("x" e "y") da origem.
+     * @param destiny As coordenadas ("x" e "y") do destino.
+     * @return A direção do primeiro caminho gerado pelo A*.
+     */
+    private int followAStarTrack(String origin, String destiny) {
+        // Pega o menor caminho, caso exista, através do algoritmo A*.
+        ArrayList<String> path = this.graph.AStar(origin, destiny);
+        // Verifica se um caminho foi gerado pelo algoritmo A*.
+        if (path != null) {
+            // Percorre a primeira direção do caminho.
+            return this.graph.vertexes.get(path.get(0)).get(path.get(1));
+        } else {
+            // Define um outro objetivo e vai até ele.
+            this.explorationObjectiveLocation = this.getLongestUnknownVertex();
+        }
+        // Pega o terreno conhecido mais distante.
+        this.explorationObjectiveLocation = this.getLongestKnownVertex();
+        return (int) Math.random() * 5;
+    }
+
     @Override
     public int acao() {
+        // Memoriza o terreno.
         this.memorizeVisitedLands();
-        this.updateGraphBasedOnMemory();
-        return this.behaviour.act();
+        // Atualiza o "refresh rate" dos Poupadores.
+        this.updateTargetRefreshRate();
+        // Faz o Ladrão perseguir um Poupador ou explorar o Labirinto.
+        return this.pinpointTargetLocation();
     }
 }
