@@ -651,10 +651,134 @@ public class Ladrao extends ProgramaLadrao {
         }
     }
 
+    public static ArrayList<ArrayList<Integer>> criaMatriz(){
+        ArrayList<ArrayList<Integer>> matrizPassos = new ArrayList<ArrayList<Integer>>();
+        for (int i = 0; i < 30; i++) {
+            ArrayList<Integer> array = new ArrayList<Integer>(30);
+            for (int j = 0; j < 30; j++) {
+                array.add(0);
+            }
+            matrizPassos.add(array);
+        }
+        return matrizPassos;
+    }
+
+    public void printaMatriz(ArrayList<ArrayList<Integer>> matriz) {
+        for (int i = 0; i < matriz.size(); i++) {
+            for (int j = 0; j < matriz.get(i).size(); j++) {
+                System.out.print(matriz.get(i).get(j));
+            }
+            System.out.println();
+        }
+    }
+
+    public void setMigalha(int x, int y){
+        // ArrayList<ArrayList<Integer>> m = matriz;
+        int valorAnterior = matrixFinal.get(x).get(y);
+        // printaMatriz(matrixFinal);
+        // System.out.println(
+        //     "---------------------------------------------------------------------"
+        // );
+        matrixFinal.get(x).set(y, valorAnterior+1);
+        // printaMatriz(matrixFinal);
+        // System.out.println(
+        //     "---------------------------------------------------------------------"
+        // );
+        // return m;   
+    }
+    
+    public boolean estaLivre(int position) {
+        int[] visao = this.sensor.getVisaoIdentificacao();
+        
+        return visao[position] == 0;
+    }
+
+    static ArrayList<ArrayList<Integer>> matrixFinal = criaMatriz();
+
+    public int migalhas(){
+        
+        int[] position = this.getThiefCurrentPosition();
+        //ArrayList<ArrayList<Integer>> matriz = setMigalha(position[0], position[1], matrix);
+        setMigalha(position[0], position[1]);
+        int cima = 7;
+        int baixo = 16;
+        int direita = 12;
+        int esquerda = 11;
+        int migalhaValorD = Integer.MAX_VALUE;
+        int migalhaValorE = Integer.MAX_VALUE;
+        int migalhaValorC = Integer.MAX_VALUE;
+        int migalhaValorB = Integer.MAX_VALUE;
+
+        if (estaLivre(direita) ) {
+            migalhaValorD = matrixFinal.get(position[0] + 1).get(position[1]);
+        }
+        if (estaLivre(esquerda)) {
+            migalhaValorE = matrixFinal.get(position[0] - 1).get(position[1]);
+        }
+        if (estaLivre(cima)){
+            migalhaValorC = matrixFinal.get(position[0]).get(position[1] - 1);
+        }
+        if (estaLivre(baixo)){
+            migalhaValorB = matrixFinal.get(position[0]).get(position[1] + 1);
+        }
+        
+   
+        
+        float r = (float) Math.random() * 4;
+        int rand = Math.round(r);
+        
+        if (migalhaValorC < migalhaValorB && migalhaValorC < migalhaValorD && migalhaValorC < migalhaValorE) {
+                    
+            // printaMatriz(matriz);
+            // System.out.println(
+            //     "---------------------------------------------------------------------"
+            // );
+            return 1;
+        } else if (migalhaValorB < migalhaValorC && migalhaValorB < migalhaValorD && migalhaValorB < migalhaValorE) {
+                    
+            // printaMatriz(matriz);
+            // System.out.println(
+            //     "---------------------------------------------------------------------"
+            // );
+            return 2;
+        } else if (migalhaValorE < migalhaValorC && migalhaValorE < migalhaValorD && migalhaValorE < migalhaValorB) {
+                        
+            // printaMatriz(matriz);
+            // System.out.println(
+            //     "---------------------------------------------------------------------"
+            // );
+            return 4;
+        } else if (migalhaValorD < migalhaValorC && migalhaValorD < migalhaValorE && migalhaValorD < migalhaValorB) {
+                    
+            // printaMatriz(matriz);
+            // System.out.println(
+            //     "---------------------------------------------------------------------"
+            // );
+            return 3;
+        } else {
+                    
+            // printaMatriz(matriz);
+            // System.out.println(
+            //     "---------------------------------------------------------------------"
+            // );
+            return rand;
+        }
+        
+
+
+    }
+
     @Override
     public int acao() {
-        this.memorizeVisitedLands();
-        this.updateGraphBasedOnMemory();
-        return this.behaviour.act();
+        // this.memorizeVisitedLands();
+        // this.updateGraphBasedOnMemory();
+        // ArrayList<ArrayList<Integer>> matriz = new ArrayList<ArrayList<Integer>>();
+        // int ctd = 0;
+        // if (ctd == 0) {
+        //     matriz = criaMatriz();
+        //     ctd++;
+        // }
+
+        return this.migalhas();
     }
 }
